@@ -22,7 +22,7 @@ var GameSchema = new Schema({
     // This will be in sequence rowwise from top to bottom of screen
     // These go into games... i.e. wordGame is the db and games is the collection
     boardElements: [String],
-    sidePanelElements: [String],
+    letterElements: [String],
     // Can also include personal bests and moves to beat in here
 });
 
@@ -37,10 +37,12 @@ app.get('/', function(req, res) {
   res.render('index', { title: 'Word Game', script: '/javascripts/index.js' });
 });
 
-// I think post is more secure for this
-// In this way the user can't simply enter the url/newGame/3 to get to the third level
-app.post('/newGame', function(req, res){
-  console.log(req.body.gameNumber);
+app.get('/play/:gameNumber', function(req, res){
+  var gameNumber = req.params.gameNumber;
+  console.log(gameNumber);
+
+  //TODO need to check if user is authorized to play level
+  /*
   Game.find({gameNumber: req.body.gameNumber}, function(error, response){
     if (error){
       console.log(error);
@@ -48,8 +50,11 @@ app.post('/newGame', function(req, res){
     }
 
     // TODO next
-    //res.render('/play', { game: response, script: 'javascripts/play.js' });
+    res.render('play', { game: response, script: 'javascripts/play.js' });
   });
+  */
+
+  res.render('play');
 });
 
 module.exports = app;
