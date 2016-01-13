@@ -37,6 +37,19 @@ app.get('/', function(req, res) {
   res.render('index', { title: 'Word Game', script: '/javascripts/index.js' });
 });
 
+// Temporary game used for testing
+var gameTemp = {
+  boardXSize: 5,
+  boardYSize: 5,
+  gameNumber: 0,
+  boardElements: ['', '', '', '', '', 
+                  '', '', '', '', '',
+                  '', '', '', 'A', 'T',
+                  'W', 'O', 'R', 'D', '',
+                  '', '', 'E', 'E', ''],
+  letterElements: ['H', 'E', 'S', 'A', 'T'],
+};
+
 app.get('/play/:gameNumber', function(req, res){
   var gameNumber = req.params.gameNumber;
   console.log(gameNumber);
