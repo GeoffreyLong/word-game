@@ -52,7 +52,7 @@ var gameTemp = {
 
 app.get('/play/:gameNumber', function(req, res){
   var gameNumber = req.params.gameNumber;
-  console.log(gameNumber);
+  console.log("Game Number = " + gameNumber);
 
   //TODO need to check if user is authorized to play level
   /*
@@ -63,11 +63,12 @@ app.get('/play/:gameNumber', function(req, res){
     }
 
     // TODO next
-    res.render('play', { game: response, script: 'javascripts/play.js' });
   });
   */
 
-  res.render('play');
+  //res.render('play');
+  gameTemp = JSON.stringify(gameTemp)
+  res.render('play', { game: gameTemp });
 });
 
 module.exports = app;
