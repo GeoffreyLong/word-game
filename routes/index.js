@@ -66,7 +66,7 @@ app.get('/play/:gameNumber', function(req, res){
   });
   */
 
-  res.render('play', { game: gameTemp });
+  res.render('play', { game: gameTemp, script: '/javascripts/play.js' });
 });
 
 module.exports = app;
