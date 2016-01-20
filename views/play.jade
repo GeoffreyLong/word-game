@@ -1,18 +1,19 @@
 extends layout
 
 block content
-  div 
+  div(id="board") 
     table
       tbody
         - var i = 0
         - each val in game.boardElements
           if (i % game.boardXSize == 0)
-            tr
-          td #{val}
+            <tr>
+          td 
+            button(class="boardElm existent") #{val}
           - i++
-  div
+  div(id="letters")
     table
       tbody
-        tr
         - each val in game.letterElements
-          td #{val}
+          td 
+            button(class="letterElm") #{val}
