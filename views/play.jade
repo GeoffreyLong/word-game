@@ -10,11 +10,9 @@ block content
             tr
           td #{val}
           - i++
-            
-//        while i < game.boardXSize
-//          tr= i++
-//          - var j = 0
-//          while j < game.boardYSize
-//            td #{game.boardElements[i+j]}
-//            - j++
-//    ul
+  div
+    table
+      tbody
+        tr
+        - each val in game.letterElements
+          td #{val}
