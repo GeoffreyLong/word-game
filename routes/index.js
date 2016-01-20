@@ -66,8 +66,6 @@ app.get('/play/:gameNumber', function(req, res){
   });
   */
 
-  //res.render('play');
-  gameTemp = JSON.stringify(gameTemp)
   res.render('play', { game: gameTemp });
 });
 
