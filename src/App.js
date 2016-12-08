@@ -21,30 +21,69 @@ class App extends Component {
 // This should probably carry all of the state logic
 class Game extends Component {
   render() {
+    var testBoard = [
+      ['', '', '', '', ''],
+      ['', 'a', 'b', 'c', ''],
+      ['', 'a', 'b', 'c', ''],
+    ];
+    var testLetters = ['a', 'b', 'c'];
     return (
       <div className="Game">
-        <GameBoard />
-        <LetterBoard />
+        <GameBoard letters={testBoard}/>
+        <LetterBoard letters={testLetters}/>
       </div>
     );
   }
 }
 
 class GameBoard extends Component {
+  renderRow(letters) {
+    return <BoardRow letters={letters} />
+  }
   render() {
+    var table = [];
+    this.props.letters.forEach((letterRow) => {
+      console.log(letterRow);
+      table.push(this.renderRow(letterRow));
+    });
+    console.log(table);
     return (
       <div className="GameBoard">
-        <Letter letter="s" />
+        {table}
+      </div>
+    );
+  }
+}
+
+class BoardRow extends Component {
+  renderLetter(letter) {
+    return <Letter letter={letter} />
+  }
+  render() {
+    var letters = [];
+    this.props.letters.forEach((letter) => {
+      letters.push(this.renderLetter(letter));
+    });
+    return (
+      <div className="BoardRow">
+        {letters}
       </div>
     );
   }
 }
 
 class LetterBoard extends Component {
+  renderLetter(letter) {
+    return <Letter letter={letter} />;
+  }
   render() {
+    var letters = [];
+    this.props.letters.forEach((letter) => {
+      letters.push(this.renderLetter(letter));
+    });
     return (
       <div className="LetterBoard">
-        <Letter letter="s" />
+        {letters}
       </div>
     );
   }
@@ -53,9 +92,9 @@ class LetterBoard extends Component {
 class Letter extends Component {
   render() {
     return (
-      <div className="Letter">
+      <button className="Letter">
         {this.props.letter}
-      </div>
+      </button>
     );
   }
 }

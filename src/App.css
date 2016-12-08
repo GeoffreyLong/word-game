@@ -15,15 +15,27 @@
 }
 
 .GameBoard {
+  padding: 20px;
   width: 80%;
   margin: auto;
   background-color: #123456;
+  text-align: center;
 }
 
 .LetterBoard {
+  padding: 20px;
   width: 80%;
   margin: auto;
   background-color: #1100FF;
+  text-align: center;
+}
+
+.Letter {
+  /* Hacky Solution for correct alignment of empty buttons */
+  vertical-align: top;
+  width: 30px;
+  height: 30px;
+  margin: 0;
 }
 
 .App-intro {
