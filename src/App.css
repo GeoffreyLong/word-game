@@ -1,17 +1,29 @@
 .App {
+}
+
+.Header {
+  text-align: center;
+  background-color: #222;
+  width: 100%;
+  padding: 20px;
+  color: white;
+}
+
+.game {
+  width: 100%;
   text-align: center;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
+.GameBoard {
+  width: 80%;
+  margin: auto;
+  background-color: #123456;
 }
 
-.App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
+.LetterBoard {
+  width: 80%;
+  margin: auto;
+  background-color: #1100FF;
 }
 
 .App-intro {
