@@ -4,6 +4,9 @@
 //    Draggable / Droppable for the letters
 //        Would need separate classes for gameButtons and letterButtons
 //    A trie for the word checking
+//    Update WordList
+//        A scrabble one would be great. 
+//        This doesn't have "scat", so I'd imagine others are missing
 
 import React, { Component } from 'react';
 import logo from './logo.svg';
@@ -34,17 +37,21 @@ class Game extends Component {
     this.state = {
       curLetter: -1,
       board: [
-        ['', '', '', '', ''],
-        ['', 'a', 'b', 'c', ''],
-        ['', 'a', 'b', 'c', ''],
+        ['', '', 'r', '', ''],
+        ['', '', 'a', '', ''],
+        ['', 'c', 'a', 'r', ''],
+        ['', '', 't', '', ''],
+        ['', '', 'e', '', ''],
       ],
       prevBoard:[
-        ['', '', '', '', ''],
-        ['', 'a', 'b', 'c', ''],
-        ['', 'a', 'b', 'c', ''],
+        ['', '', 'r', '', ''],
+        ['', '', 'a', '', ''],
+        ['', 'c', 'a', 'r', ''],
+        ['', '', 't', '', ''],
+        ['', '', 'e', '', ''],
       ],
-      letters: ['a', 'b', 'c'],
-      prevLetters: ['a', 'b', 'c']
+      letters: ['s', 'c', 'e', 'a', 't'],
+      prevLetters: ['s', 'c', 'e', 'a', 't']
     };
   }
   handleLBClick(letterIdx) {
@@ -55,13 +62,21 @@ class Game extends Component {
   handleGBClick(letterIdx, rowIdx) {
     this.setState((prevState) => {
       if (prevState.board[rowIdx][letterIdx] == '' && prevState.curLetter != -1) {
-        var newBoard = prevState.board;
+        // Clone the board and add the letter
+        var newBoard = [];
+        prevState.board.forEach(function(row) {
+          newBoard.push(row.slice());
+        });
         newBoard[rowIdx][letterIdx] = prevState.letters[prevState.curLetter];
-        prevState.letters.splice(prevState.curLetter, 1);
+
+        // Clone and remove the used letter from letters
+        var newLetters = prevState.letters.slice();
+        newLetters.splice(prevState.curLetter, 1);
+
         return {
           board: newBoard,
           curLetter: -1,
-          letters: prevState.letters
+          letters: newLetters
         };
       }
     });
@@ -82,11 +97,15 @@ class Game extends Component {
   handleSubmitClick() {
     if (isValid(this.state.board, this.state.prevBoard)) {
       this.setState((prevState) => {
-        var newBoard = [];
-        prevState.board.forEach(function(row) {
-          newBoard.push(row.slice());
-        })
+        var newBoard = removeNew(prevState.board, prevState.prevBoard);
+        condenseBoard(newBoard);
+        var prevBoard = [];
+        newBoard.forEach(function(row) {
+          prevBoard.push(row.slice());
+        });
+
         return {
+          board: newBoard,
           prevBoard: newBoard,
           prevLetters: prevState.letters.slice()
         }
@@ -188,6 +207,7 @@ class GameButtons extends Component {
   }
 }
 
+// This function will check whether or not the current board configuration is valid
 // Note that I am not stopping people from putting words in empty space
 //    If they want to waste letters, then they can
 function isValid(board, prevBoard) {
@@ -242,8 +262,14 @@ function isValid(board, prevBoard) {
       // so reset both horizWord and vertWord 
       // and check the added words that are not just single letters
       if (board[row][col] === '') {
-        if (horizWord.word.length > 1 && horizWord.isNew) console.log(horizWord.word);
-        if (vertWord[col].word.length > 1 && vertWord[col].isNew) console.log(vertWord[col].word);
+        if (horizWord.word.length > 1 && horizWord.isNew) {
+          if (!isValidWord(horizWord.word)) return false;
+        }  
+        if (vertWord[col].word.length > 1 && vertWord[col].isNew) {
+          if (!isValidWord(vertWord[col].word)) return false;
+        }
+
+        // Reset the corresponding words
         horizWord.word = '';
         horizWord.isNew = false;
         vertWord[col].word = '';
@@ -258,7 +284,9 @@ function isValid(board, prevBoard) {
 
     // Checks for horizontal edge cases
     if (horizWord.word !== '') {
-      if (horizWord.word.length > 1 && horizWord.isNew) console.log(horizWord.word);
+      if (horizWord.word.length > 1 && horizWord.isNew) {
+        if (!isValidWord(horizWord.word)) return false;
+      }
       horizWord.word = '';
       horizWord.isNew = false;
     }
@@ -266,10 +294,163 @@ function isValid(board, prevBoard) {
   
   // Check for vertical edge cases
   for (var col = 0; col < numCols; col ++) {
-    if (vertWord[col].word.length > 1 && vertWord[col].isNew) console.log(vertWord[col].word);
+    if (vertWord[col].word.length > 1 && vertWord[col].isNew) {
+      if (!isValidWord(vertWord[col].word)) return false;
+    }
   }
 
   return true;
+}
+
+// Checks if the word is valid or not based on the wordlist.json provided
+// TODO
+//    This could probably be faster with a trie, I'm employing the most basic search.
+//    It could even be better with some sort of alphabetical binary search
+function isValidWord(word) {
+  console.log(word);
+  if (words.wordlist.indexOf(word) >= 0) return true;
+  return false;
+}
+
+// Recycles a lot of logic from the isValid function
+// Also recycles a lot of logic internally
+function removeNew(board, prevBoard) {
+  var numRows = board.length;
+  var numCols = board[0].length;
+  var newBoard = Array(numRows).fill().map(() => Array(numCols).fill(null));
+
+  // Iterate over all the squares on the board
+  // Figure out which indices need to be removed
+  for (var row = 0; row < numRows; row ++) {
+    for (var col = 0; col < numCols; col ++) {
+      // Counters for the loop
+      var tempRow = row;
+      var tempCol = col;
+
+      if (newBoard[row][col] !== '') newBoard[row][col] = prevBoard[row][col];
+
+      // If there is a new variable in a location
+      // Then check outwards in each direction deleting any characters from the newWord
+      if (board[row][col] != prevBoard[row][col]) {
+        var distance = 1;
+        while ((tempRow - distance >= 0) && board[tempRow - distance][tempCol]) {
+          newBoard[tempRow - distance][tempCol] = '';
+          distance += 1;
+        }
+        
+        distance = 1;
+        while ((tempRow + distance < numRows) && board[tempRow + distance][tempCol]) {
+          newBoard[tempRow + distance][tempCol] = '';
+          distance += 1;
+        }
+        
+        distance = 1;
+        while (board[tempRow][tempCol + distance]) {
+          newBoard[tempRow][tempCol + distance] = '';
+          distance += 1;
+        }
+
+        distance = 1;
+        while (board[tempRow][tempCol - distance]) {
+          newBoard[tempRow][tempCol - distance] = '';
+          distance += 1;
+        }
+      }
+    }
+  }
+
+  return newBoard;
+}
+
+function condenseBoard(board) {
+  // Condense the vertical before the horizontal
+  // Both functions find stranded elements and move them to be on the "word tree"
+  condenseVertical(board);
+  condenseHorizontal(board);
+
+}
+
+function condenseVertical(board) {
+
+  var numRows = board.length;
+  var numCols = board[0].length;
+
+  // Iterate over all the squares on the board
+  for (var row = 0; row < numRows; row ++) {
+    for (var col = 0; col < numCols; col ++) {
+      var tempRow = row;
+      var tempCol = col;
+      // Undefined will map to false?
+      // Need the extra logic for the rows, 
+      // since indexing on an undefined will throw an err
+      while (board[tempRow][tempCol] !== '' && 
+              !(((tempRow + 1 < numRows) && board[tempRow+1][tempCol])
+                  || ((tempRow - 1 >= 0) && board[tempRow-1][tempCol])
+                  || board[tempRow][tempCol+1] || board[tempRow][tempCol-1])) {
+        // Shift the element down as far as possible
+        if (tempRow + 1 < numRows) {
+          board[tempRow+1][tempCol] = board[tempRow][tempCol];
+          board[tempRow][tempCol] = '';
+          tempRow += 1;
+        }
+        else {
+          break;
+        }
+      }
+    }
+  }
+}
+
+function condenseHorizontal(board) {
+  var numRows = board.length;
+  var numCols = board[0].length;
+
+  // Iterate over all the squares on the board
+  for (var row = 0; row < numRows; row ++) {
+    for (var col = 0; col < numCols; col ++) {
+      var tempRow = row;
+      var tempCol = col;
+      // Undefined will map to false?
+      // Need the extra logic for the rows, 
+      // since indexing on an undefined will throw an err
+      while (board[tempRow][tempCol] !== '' && 
+              !(((tempRow + 1 < numRows) && board[tempRow+1][tempCol])
+                  || ((tempRow - 1 >= 0) && board[tempRow-1][tempCol])
+                  || board[tempRow][tempCol+1] || board[tempRow][tempCol-1])) {
+        // Shift the element to the left or right towards the closest element
+        // Defaults to a right shift
+        // This means increment the column (right shift)
+        // -1 is for decrementing
+        var rightShiftCount = 1;
+        var leftShiftCount = -1;
+
+        // Increase looking for elements to the left and right
+        // Break when an elm is found to the left or right, 
+        //    or when both indices are out of range
+        while ((tempCol + leftShiftCount >= 0 || tempCol + rightShiftCount < numCols)
+                && !board[tempRow][tempCol + rightShiftCount] 
+                && !board[tempRow][tempCol + leftShiftCount]) {
+          rightShiftCount += 1;
+          leftShiftCount -= 1;
+        }
+
+        // Default to the right element if both are equal
+        // If the left element is closer then go there
+        // If neither crawler found an element, then just leave the current where it is
+        if (board[tempRow][tempCol + rightShiftCount] !== '') {
+          board[tempRow][tempCol + rightShiftCount - 1] = board[tempRow][tempCol];
+          board[tempRow][tempCol] = '';
+          tempCol += rightShiftCount - 1;
+        }
+        else if (board[tempRow][tempCol + leftShiftCount] !== '') {
+          board[tempRow][tempCol + leftShiftCount + 1] = board[tempRow][tempCol];
+          board[tempRow][tempCol] = '';
+        }
+
+        tempCol += 1;
+      }
+    }
+  }
 }
 
 export default App;
