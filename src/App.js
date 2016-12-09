@@ -31,22 +31,52 @@ class Game extends Component {
     super();
 
     this.state = {
+      curLetter: -1,
       board: [
         ['', '', '', '', ''],
         ['', 'a', 'b', 'c', ''],
         ['', 'a', 'b', 'c', ''],
       ],
-      letters: ['a', 'b', 'c']
+      prevBoard:[
+        ['', '', '', '', ''],
+        ['', 'a', 'b', 'c', ''],
+        ['', 'a', 'b', 'c', ''],
+      ],
+      letters: ['a', 'b', 'c'],
+      prevLetters: ['a', 'b', 'c']
     };
   }
   handleLBClick(letterIdx) {
-    alert("ok: " + letterIdx);
+    this.setState((prevState) => ({
+      curLetter: letterIdx
+    }));
   }
-  handleGBClick(letter, row) {
-    alert("ok2: " + letter + " " + row);
+  handleGBClick(letterIdx, rowIdx) {
+    this.setState((prevState) => {
+      if (prevState.board[rowIdx][letterIdx] == '' && prevState.curLetter != -1) {
+        var newBoard = prevState.board;
+        newBoard[rowIdx][letterIdx] = prevState.letters[prevState.curLetter];
+        prevState.letters.splice(prevState.curLetter, 1);
+        return {
+          board: newBoard,
+          curLetter: -1,
+          letters: prevState.letters
+        };
+      }
+    });
   }
-  handleUndoClick() {
-    alert("undo");
+  resetBoard() {
+    this.setState((prevState) => {
+      var newBoard = [];
+      prevState.prevBoard.forEach(function(row) {
+        newBoard.push(row.slice());
+      })
+      return {
+        board: newBoard,
+        letters: prevState.prevLetters.slice(),
+        curLetter: -1
+      }
+    });
   }
   handleSubmitClick() {
     alert("submit");
@@ -57,8 +87,9 @@ class Game extends Component {
         <GameBoard  letters={this.state.board}
                     handleGBClick={(letter, row) => this.handleGBClick(letter, row)}/>
         <LetterBoard  letters={this.state.letters} 
+                      curLetter={this.state.curLetter}
                       handleLBClick={(letterIdx) => this.handleLBClick(letterIdx)}
-                      handleUndoClick={() => this.handleUndoClick()}
+                      handleUndoClick={() => this.resetBoard()}
                       handleSubmitClick={() => this.handleSubmitClick()}/>
       </div>
     );
@@ -72,10 +103,8 @@ class GameBoard extends Component {
   render() {
     var table = [];
     this.props.letters.forEach((letterRow, row) => {
-      console.log(letterRow);
       table.push(this.renderRow(letterRow, row));
     });
-    console.log(table);
     return (
       <div className="GameBoard">
         {table}
@@ -113,7 +142,7 @@ class LetterBoard extends Component {
     return (
       <div className="LetterBoard">
         {letters}
-        <div> Letter Selected: TODO </div>
+        <div> Letter Selected: {(this.props.curLetter != -1 ? this.props.letters[this.props.curLetter] : '')} </div>
         <GameButtons  handleUndoClick={() => this.props.handleUndoClick()}
                       handleSubmitClick={() => this.props.handleSubmitClick()}/>
       </div>
@@ -142,5 +171,8 @@ class GameButtons extends Component {
   }
 }
 
+function isValid(board) {
+
+}
 
 export default App;
