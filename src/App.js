@@ -8,6 +8,7 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import words from './wordlist.json';
 
 
 class App extends Component {
@@ -79,7 +80,23 @@ class Game extends Component {
     });
   }
   handleSubmitClick() {
-    alert("submit");
+    if (isValid(this.state.board, this.state.prevBoard)) {
+      this.setState((prevState) => {
+        var newBoard = [];
+        prevState.board.forEach(function(row) {
+          newBoard.push(row.slice());
+        })
+        return {
+          prevBoard: newBoard,
+          prevLetters: prevState.letters.slice()
+        }
+      });
+    }
+    else {
+      // Do the same as a click
+      alert("Invalid");
+      this.resetBoard();
+    }
   }
   render() {
     return (
@@ -171,8 +188,88 @@ class GameButtons extends Component {
   }
 }
 
-function isValid(board) {
+// Note that I am not stopping people from putting words in empty space
+//    If they want to waste letters, then they can
+function isValid(board, prevBoard) {
+  // The iterators
+  var numRows = board.length;
+  var numCols = board[0].length;
 
+  // These variables check for valid letter placement
+  var newRow = -1;
+  var newCol = -1;
+  var hasNewWord = false;
+
+  // These variables hold the created words
+  var horizWord = {
+    word: '',
+    isNew: false
+  };
+  var vertWord = [];
+  for (var i = 0; i < numCols; i ++) {
+    vertWord.push({
+      word: '',
+      isNew: false
+    });
+  }
+
+  // Iterate over all the squares on the board
+  for (var row = 0; row < numRows; row ++) {
+    for (var col = 0; col < numCols; col ++) {
+      // This checks for added (new) letters
+      if (board[row][col] != prevBoard[row][col]) {
+        // The two next if statements check if the letter addition is valid
+        // We cannot have two separate words entered in the same play
+        if ((hasNewWord && horizWord.word === '' && vertWord[col].word === '')
+              || (newRow !== -1 && newCol !== -1 && row !== newRow && col !== newCol)) { 
+          console.log("Two Separates");
+          return false;
+        }
+        if (newRow === -1 && newCol === -1) {
+          newRow = row;
+          newCol = col;
+        }
+        hasNewWord = true;
+
+
+        // This will mark the word as containing a new addition 
+        // so we know which words to check
+        horizWord.isNew = true;
+        vertWord[col].isNew = true;
+      }
+
+      // If the letter is '' then this indicates the end of a word
+      // so reset both horizWord and vertWord 
+      // and check the added words that are not just single letters
+      if (board[row][col] === '') {
+        if (horizWord.word.length > 1 && horizWord.isNew) console.log(horizWord.word);
+        if (vertWord[col].word.length > 1 && vertWord[col].isNew) console.log(vertWord[col].word);
+        horizWord.word = '';
+        horizWord.isNew = false;
+        vertWord[col].word = '';
+        vertWord[col].isNew = false;
+      }
+      // This will add the letter to the appropriate word
+      else {
+        horizWord.word += board[row][col];
+        vertWord[col].word += board[row][col];
+      }
+    }
+
+    // Checks for horizontal edge cases
+    if (horizWord.word !== '') {
+      if (horizWord.word.length > 1 && horizWord.isNew) console.log(horizWord.word);
+      horizWord.word = '';
+      horizWord.isNew = false;
+    }
+  }
+  
+  // Check for vertical edge cases
+  for (var col = 0; col < numCols; col ++) {
+    if (vertWord[col].word.length > 1 && vertWord[col].isNew) console.log(vertWord[col].word);
+  }
+
+  return true;
 }
 
 export default App;
