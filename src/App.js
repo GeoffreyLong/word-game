@@ -1,3 +1,7 @@
+// IMPORTANT TODO
+//    Check the iterating with the /2... might not be an int
+//
+//
 // TODO
 //    Formatting... Make everything pretty
 //    Refactoring... Make my code more readable
@@ -6,6 +10,10 @@
 //            In the menu, you would select the game you want to play
 //            The back navigation button would be in the header I guess?
 //    Add more games!
+//    Stats and Unlocking new games
+//        Might want to look into Redux before tackling this
+//        I can do it with just react by using localStorage I think though
+//        Redux might have some tools for global and persistent state though
 //
 // POSSIBLE OPTIMIZATIONS
 //    Draggable / Droppable for the letters
@@ -14,6 +22,16 @@
 //    Update WordList
 //        A scrabble one would be great. 
 //        This doesn't have "scat", so I'd imagine others are missing
+//    Winning Stats
+//        Would be cool to have the score be based on the complexity of letters used
+//        Or on the complexity of words chosen
+//        In addition to the current
+//    PowerUps
+//        Perhaps using certain words on certain boards will give "power ups"
+//        Could also have powerUp tiles randomly
+//        Example powerups
+//            Explosion
+//            Misc Character (wildcard)
 //
 // POSSIBLE NAMES
 //    Negation
@@ -166,13 +184,16 @@ class Game extends Component {
     var haveWon = checkWinningStatus(this.state.board);
     if (haveWon) {
       alert("You Won!");
+      calcWinStats(this.state.numberOfMoves, this.state.prevLetters);
       // TODO update stats
+      //      Winning animations?
       //      return to main menu
     }
     // Use previous letters since that is after a submission
     else if (!haveWon && this.state.prevLetters.length == 0) {
       alert("You Lost :(");
       // TODO update stats
+      //      Losing animations?
       //      return to main menu
     }
 
@@ -189,6 +210,16 @@ class Game extends Component {
       </div>
     );
   }
+}
+
+
+// Right now it just takes the number of moves and letters
+function calcWinStats(numberOfMoves, letters) {
+  console.log(numberOfMoves);
+  console.log(letters);
+
+  // This is a rudimentary way of doing this
+  console.log(letters.length / numberOfMoves);
 }
 
 function checkWinningStatus(board) {
