@@ -53,7 +53,6 @@ class App extends Component {
       gameButtons.push(that.renderButtons(gameIdx));
     });
 
-    console.log(this.state.gameIdx);
     return (
       <div className="App">
         <div className="Header">
@@ -164,6 +163,20 @@ class Game extends Component {
     }
   }
   render() {
+    var haveWon = checkWinningStatus(this.state.board);
+    if (haveWon) {
+      alert("You Won!");
+      // TODO update stats
+      //      return to main menu
+    }
+    // Use previous letters since that is after a submission
+    else if (!haveWon && this.state.prevLetters.length == 0) {
+      alert("You Lost :(");
+      // TODO update stats
+      //      return to main menu
+    }
+
+
     return (
       <div className="Game">
         <GameBoard  letters={this.state.board}
@@ -176,6 +189,21 @@ class Game extends Component {
       </div>
     );
   }
+}
+
+function checkWinningStatus(board) {
+  var numRows = board.length;
+  var numCols = board[0].length;
+
+  // Iterate over all the squares on the board
+  // If there are any letters left then we have not won
+  for (var row = 0; row < numRows; row ++) {
+    for (var col = 0; col < numCols; col ++) {
+      if (board[row][col] !== '') return false;
+    }
+  }
+
+  return true;
 }
 
 class GameBoard extends Component {
@@ -257,7 +285,6 @@ class GameButtons extends Component {
 // Note that I am not stopping people from putting words in empty space
 //    If they want to waste letters, then they can
 function isValid(board, prevBoard) {
-  // The iterators
   var numRows = board.length;
   var numCols = board[0].length;
 
@@ -493,12 +520,9 @@ function condenseHorizontal(board) {
 
   var newBoard = createVisitedBoard(board);
 
-  console.log("again");
   // Go bottom up from the outside in
   for (var col = 0; col < numCols/2 + 1; col ++) {
     for (var row = numRows-1; row >= 0; row --) {
-      console.log(numCols/2 + col);
-      console.log(numCols/2 - col -1);
       if ((numCols/2 + col < numCols) && board[row][numCols/2 + col] !== '') {
         checkConnected(newBoard, row, numCols/2 + col);
         direction = 1;
@@ -517,7 +541,6 @@ function condenseHorizontal(board) {
   for (var row = numRows-1; row >= 0; row --) {
     for (var col = 0; col < numCols; col ++) {
       if (newBoard[row][col].val !== '' && !newBoard[row][col].visited) {
-        console.log("moved");
         board[row][col+direction] = board[row][col];
         board[row][col] = '';
         movedElms = true;
