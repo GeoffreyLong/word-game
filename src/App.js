@@ -1,4 +1,5 @@
 // TODO
+//    Formatting... Make everything pretty
 //
 // POSSIBLE OPTIMIZATIONS
 //    Draggable / Droppable for the letters
@@ -7,52 +8,42 @@
 //    Update WordList
 //        A scrabble one would be great. 
 //        This doesn't have "scat", so I'd imagine others are missing
+//
+// POSSIBLE NAMES
+//    Negation
 
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import words from './wordlist.json';
+import games from './gamelist.js';
 
 
 class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <div className="Header">
-          header will be here
-          will contain the levels... I guess
-          maybe some concept of score
-        </div>
-        <Game />
-      </div>
-    );
-  }
-}
-
-// This should probably carry all of the state logic
-class Game extends Component {
   constructor() {
     super();
 
     this.state = {
+      gameIdx: -1
+    }
+  }
+  handleClick(i) {
+    var game = games[i];
+    var board = [];
+    var prevBoard = [];
+    game.board.forEach(function(row) {
+      board.push(row.slice());
+      prevBoard.push(row.slice());
+    });
+    this.setState({
+      gameIdx: i,
       curLetter: -1,
-      board: [
-        ['', '', '', '', '', ''],
-        ['', '', 'r', '', '', ''],
-        ['', 'c', 'a', 'r', '', ''],
-        ['', '', 't', '', '', ''],
-        ['', '', 'e', '', '', ''],
-      ],
-      prevBoard:[
-        ['', '', '', '', '', ''],
-        ['', '', 'r', '', '', ''],
-        ['', 'c', 'a', 'r', '', ''],
-        ['', '', 't', '', '', ''],
-        ['', '', 'e', '', '', ''],
-      ],
-      letters: ['s', 'c', 'e', 'a', 't', 'a'],
-      prevLetters: ['s', 'c', 'e', 'a', 't', 'a']
-    };
+      board: board,
+      prevBoard: prevBoard,
+      letters: game.letters.slice(),
+      prevLetters: game.letters.slice(),
+      numberOfMoves: 0
+    });
   }
   handleLBClick(letterIdx) {
     this.setState((prevState) => ({
@@ -107,7 +98,8 @@ class Game extends Component {
         return {
           board: newBoard,
           prevBoard: newBoard,
-          prevLetters: prevState.letters.slice()
+          prevLetters: prevState.letters.slice(),
+          numberOfMoves: prevState.numberOfMoves + 1
         }
       });
     }
@@ -117,16 +109,50 @@ class Game extends Component {
       this.resetBoard();
     }
   }
+  renderButtons(i) {
+    return <button onClick={() => this.handleClick(i)}> {i} </button>
+  }
+  renderGame() {
+    return <Game  board={this.state.board} letters={this.state.letters}
+                  curLetter={this.state.curLetter}
+                  handleGBClick={(letter, row) => this.handleGBClick(letter, row)}
+                  handleLBClick={(letterIdx) => this.handleLBClick(letterIdx)}
+                  handleUndoClick={() => this.resetBoard()}
+                  handleSubmitClick={() => this.handleSubmitClick()}/>
+  }
+  render() {
+    var gameButtons = [];
+    var that = this;
+    games.forEach(function(game, gameIdx) {
+      gameButtons.push(that.renderButtons(gameIdx));
+    });
+
+    console.log(this.state.gameIdx);
+    return (
+      <div className="App">
+        <div className="Header">
+          {gameButtons}
+        </div>
+        {this.state.gameIdx != -1 && 
+          this.renderGame()
+        }
+      </div>
+    );
+  }
+}
+
+// This should probably carry all of the state logic
+class Game extends Component {
   render() {
     return (
       <div className="Game">
-        <GameBoard  letters={this.state.board}
-                    handleGBClick={(letter, row) => this.handleGBClick(letter, row)}/>
-        <LetterBoard  letters={this.state.letters} 
-                      curLetter={this.state.curLetter}
-                      handleLBClick={(letterIdx) => this.handleLBClick(letterIdx)}
-                      handleUndoClick={() => this.resetBoard()}
-                      handleSubmitClick={() => this.handleSubmitClick()}/>
+        <GameBoard  letters={this.props.board}
+                    handleGBClick={(letter, row) => this.props.handleGBClick(letter, row)}/>
+        <LetterBoard  letters={this.props.letters} 
+                      curLetter={this.props.curLetter}
+                      handleLBClick={(letterIdx) => this.props.handleLBClick(letterIdx)}
+                      handleUndoClick={() => this.props.resetBoard()}
+                      handleSubmitClick={() => this.props.handleSubmitClick()}/>
       </div>
     );
   }
