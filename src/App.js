@@ -37,21 +37,21 @@ class Game extends Component {
     this.state = {
       curLetter: -1,
       board: [
-        ['', '', 'r', '', ''],
-        ['', '', 'a', '', ''],
-        ['', 'c', 'a', 'r', ''],
-        ['', '', 't', '', ''],
-        ['', '', 'e', '', ''],
+        ['', '', '', '', '', ''],
+        ['', '', 'r', '', '', ''],
+        ['', 'c', 'a', 'r', '', ''],
+        ['', '', 't', '', '', ''],
+        ['', '', 'e', '', '', ''],
       ],
       prevBoard:[
-        ['', '', 'r', '', ''],
-        ['', '', 'a', '', ''],
-        ['', 'c', 'a', 'r', ''],
-        ['', '', 't', '', ''],
-        ['', '', 'e', '', ''],
+        ['', '', '', '', '', ''],
+        ['', '', 'r', '', '', ''],
+        ['', 'c', 'a', 'r', '', ''],
+        ['', '', 't', '', '', ''],
+        ['', '', 'e', '', '', ''],
       ],
-      letters: ['s', 'c', 'e', 'a', 't'],
-      prevLetters: ['s', 'c', 'e', 'a', 't']
+      letters: ['s', 'c', 'e', 'a', 't', 'a'],
+      prevLetters: ['s', 'c', 'e', 'a', 't', 'a']
     };
   }
   handleLBClick(letterIdx) {
@@ -365,92 +365,121 @@ function removeNew(board, prevBoard) {
 function condenseBoard(board) {
   // Condense the vertical before the horizontal
   // Both functions find stranded elements and move them to be on the "word tree"
-  condenseVertical(board);
-  condenseHorizontal(board);
 
+  // The elements are shifted as a block, down or over one space
+  // This single shift might be inefficient since the graph needs to be crawled each time
+  // TODO improve?
+
+  // Both functions return true as long as elements are moved
+  while (condenseVertical(board));
+  while (condenseHorizontal(board));
+
+  console.log("done");
 }
 
-function condenseVertical(board) {
-
+function createVisitedBoard(board) {
   var numRows = board.length;
   var numCols = board[0].length;
 
-  // Iterate over all the squares on the board
+  // This tempBoard will have an isGrounded flag which means it was visited
+  var newBoard = [];
   for (var row = 0; row < numRows; row ++) {
+    var tempRow = [];
     for (var col = 0; col < numCols; col ++) {
-      var tempRow = row;
-      var tempCol = col;
-      // Undefined will map to false?
-      // Need the extra logic for the rows, 
-      // since indexing on an undefined will throw an err
-      while (board[tempRow][tempCol] !== '' && 
-              !(((tempRow + 1 < numRows) && board[tempRow+1][tempCol])
-                  || ((tempRow - 1 >= 0) && board[tempRow-1][tempCol])
-                  || board[tempRow][tempCol+1] || board[tempRow][tempCol-1])) {
-        // Shift the element down as far as possible
-        if (tempRow + 1 < numRows) {
-          board[tempRow+1][tempCol] = board[tempRow][tempCol];
-          board[tempRow][tempCol] = '';
-          tempRow += 1;
-        }
-        else {
-          break;
-        }
+      tempRow.push({
+        val: board[row][col],
+        visited: false
+      });
+    }
+    newBoard.push(tempRow);
+  }
+
+  return newBoard;
+}
+
+// Checks to see if the elements are grounded
+// Then will shift down any non-grounded elements
+function condenseVertical(board) {
+  var numRows = board.length;
+  var numCols = board[0].length;
+  var movedElms = false;
+  var groundBoard = createVisitedBoard(board);
+
+  var bottomRow = numRows - 1;
+  for (var col = 0; col < numCols; col ++) {
+    if (board[bottomRow][col] !== '') {
+      checkConnected(groundBoard, bottomRow, col);
+    }
+  }
+
+  for (var row = bottomRow; row >= 0; row --) {
+    for (var col = 0; col < numCols; col ++) {
+      if (groundBoard[row][col].val !== '' && !groundBoard[row][col].visited) {
+        board[row+1][col] = board[row][col];
+        board[row][col] = '';
+        movedElms = true;
       }
     }
+  }
+
+  return movedElms;
+}
+
+function checkConnected(board, row, col) {
+  var numRows = board.length;
+  var numCols = board[0].length;
+
+  if (board[row][col].visited) return;
+  if (board[row][col].val) {
+    board[row][col].visited = true;
+    if (row+1 < numRows) checkConnected(board, row+1, col);
+    if (row-1 >= 0) checkConnected(board, row-1, col);
+    if (col+1 < numCols) checkConnected(board, row, col+1);
+    if (col-1 >= 0) checkConnected(board, row, col-1);
   }
 }
 
 function condenseHorizontal(board) {
   var numRows = board.length;
   var numCols = board[0].length;
+  var movedElms = false;
+  var direction = 0;
 
-  // Iterate over all the squares on the board
-  for (var row = 0; row < numRows; row ++) {
+  var newBoard = createVisitedBoard(board);
+
+  console.log("again");
+  // Go bottom up from the outside in
+  for (var col = 0; col < numCols/2 + 1; col ++) {
+    for (var row = numRows-1; row >= 0; row --) {
+      console.log(numCols/2 + col);
+      console.log(numCols/2 - col -1);
+      if ((numCols/2 + col < numCols) && board[row][numCols/2 + col] !== '') {
+        checkConnected(newBoard, row, numCols/2 + col);
+        direction = 1;
+        break;
+      }
+      if ((numCols/2 - col - 1 >= 0) && board[row][numCols/2 - col - 1] !== '') {
+        checkConnected(newBoard, row, numCols/2 - col - 1);
+        direction = 1;
+        break;
+      }
+    }
+    if (direction != 0) break;
+    if (numCols/2 + col >= numCols && numCols/2 - col - 1 < 0) break;
+  }
+
+  for (var row = numRows-1; row >= 0; row --) {
     for (var col = 0; col < numCols; col ++) {
-      var tempRow = row;
-      var tempCol = col;
-      // Undefined will map to false?
-      // Need the extra logic for the rows, 
-      // since indexing on an undefined will throw an err
-      while (board[tempRow][tempCol] !== '' && 
-              !(((tempRow + 1 < numRows) && board[tempRow+1][tempCol])
-                  || ((tempRow - 1 >= 0) && board[tempRow-1][tempCol])
-                  || board[tempRow][tempCol+1] || board[tempRow][tempCol-1])) {
-        // Shift the element to the left or right towards the closest element
-        // Defaults to a right shift
-        // This means increment the column (right shift)
-        // -1 is for decrementing
-        var rightShiftCount = 1;
-        var leftShiftCount = -1;
-
-        // Increase looking for elements to the left and right
-        // Break when an elm is found to the left or right, 
-        //    or when both indices are out of range
-        while ((tempCol + leftShiftCount >= 0 || tempCol + rightShiftCount < numCols)
-                && !board[tempRow][tempCol + rightShiftCount] 
-                && !board[tempRow][tempCol + leftShiftCount]) {
-          rightShiftCount += 1;
-          leftShiftCount -= 1;
-        }
-
-        // Default to the right element if both are equal
-        // If the left element is closer then go there
-        // If neither crawler found an element, then just leave the current where it is
-        if (board[tempRow][tempCol + rightShiftCount] !== '') {
-          board[tempRow][tempCol + rightShiftCount - 1] = board[tempRow][tempCol];
-          board[tempRow][tempCol] = '';
-          tempCol += rightShiftCount - 1;
-        }
-        else if (board[tempRow][tempCol + leftShiftCount] !== '') {
-          board[tempRow][tempCol + leftShiftCount + 1] = board[tempRow][tempCol];
-          board[tempRow][tempCol] = '';
-        }
-
-        tempCol += 1;
+      if (newBoard[row][col].val !== '' && !newBoard[row][col].visited) {
+        console.log("moved");
+        board[row][col+direction] = board[row][col];
+        board[row][col] = '';
+        movedElms = true;
       }
     }
   }
+
+  return movedElms;
 }
 
 export default App;
