@@ -510,6 +510,20 @@ function createVisitedBoard(board) {
   return newBoard;
 }
 
+function checkConnected(board, row, col) {
+  var numRows = board.length;
+  var numCols = board[0].length;
+
+  if (board[row][col].visited) return;
+  if (board[row][col].val) {
+    board[row][col].visited = true;
+    if (row+1 < numRows) checkConnected(board, row+1, col);
+    if (row-1 >= 0) checkConnected(board, row-1, col);
+    if (col+1 < numCols) checkConnected(board, row, col+1);
+    if (col-1 >= 0) checkConnected(board, row, col-1);
+  }
+}
+
 // Checks to see if the elements are grounded
 // Then will shift down any non-grounded elements
 function condenseVertical(board) {
@@ -538,20 +552,6 @@ function condenseVertical(board) {
   return movedElms;
 }
 
-function checkConnected(board, row, col) {
-  var numRows = board.length;
-  var numCols = board[0].length;
-
-  if (board[row][col].visited) return;
-  if (board[row][col].val) {
-    board[row][col].visited = true;
-    if (row+1 < numRows) checkConnected(board, row+1, col);
-    if (row-1 >= 0) checkConnected(board, row-1, col);
-    if (col+1 < numCols) checkConnected(board, row, col+1);
-    if (col-1 >= 0) checkConnected(board, row, col-1);
-  }
-}
-
 function condenseHorizontal(board) {
   var numRows = board.length;
   var numCols = board[0].length;
@@ -570,7 +570,7 @@ function condenseHorizontal(board) {
       }
       if ((numCols/2 - col - 1 >= 0) && board[row][numCols/2 - col - 1] !== '') {
         checkConnected(newBoard, row, numCols/2 - col - 1);
-        direction = 1;
+        direction = -1;
         break;
       }
     }
