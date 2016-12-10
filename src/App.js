@@ -1,9 +1,13 @@
 // IMPORTANT TODO
+//    Fix the header styling
+//    Fix the game styling
 //    Check the iterating with the /2... might not be an int
+//        Consider Math.ceil
+//    Checking for new words after collapsing
+//        Multi-collapses are a good way to get extra points for stats
 //
 //
 // TODO
-//    Formatting... Make everything pretty
 //    Refactoring... Make my code more readable
 //        If I replace the game div with something, then constructor is called again
 //        Adding a menu screen might be a good option for this
@@ -18,6 +22,7 @@
 // POSSIBLE OPTIMIZATIONS
 //    Draggable / Droppable for the letters
 //        Would need separate classes for gameButtons and letterButtons
+//        Check out React DnD or similar
 //    A trie for the word checking
 //    Update WordList
 //        A scrabble one would be great. 
@@ -32,6 +37,7 @@
 //        Example powerups
 //            Explosion
 //            Misc Character (wildcard)
+//    Add a "how to"
 //
 // POSSIBLE NAMES
 //    Negation
@@ -75,19 +81,20 @@ class App extends Component {
       <div className="App">
         <div className="Header">
           <button onClick={() => this.mainMenu()}> MENU </button>
+          <div id="title"> {this.props.title} </div>
         </div>
         {this.state.gameIdx !== -1 && 
           <Game gameIdx={this.state.gameIdx} />
         }
         {this.state.gameIdx === -1 &&
-          <div>
-            Please choose a game from above
-            TODO add a separate game selection menu here
-            Should probably pull game selection out of the header
-
-            <br></br>
-            
-            {gameButtons}
+          <div className="Menu">
+            <div>
+              <h1> Welcome To {this.props.title} </h1>
+              <span> Please select a level </span>
+            </div>
+            <div className="GameButtons">
+              {gameButtons}
+            </div>
           </div>
         }
       </div>
@@ -282,8 +289,10 @@ class LetterBoard extends Component {
     });
     return (
       <div className="LetterBoard">
-        {letters}
-        <div> Letter Selected: {(this.props.curLetter != -1 ? this.props.letters[this.props.curLetter] : '')} </div>
+        <h3> Letter Selected: {(this.props.curLetter != -1 ? this.props.letters[this.props.curLetter] : '')} </h3>
+        <div>
+          {letters}
+        </div>
         <GameButtons  handleUndoClick={() => this.props.handleUndoClick()}
                       handleSubmitClick={() => this.props.handleSubmitClick()}/>
       </div>
