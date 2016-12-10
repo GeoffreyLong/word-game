@@ -1,5 +1,11 @@
 // TODO
 //    Formatting... Make everything pretty
+//    Refactoring... Make my code more readable
+//        If I replace the game div with something, then constructor is called again
+//        Adding a menu screen might be a good option for this
+//            In the menu, you would select the game you want to play
+//            The back navigation button would be in the header I guess?
+//    Add more games!
 //
 // POSSIBLE OPTIMIZATIONS
 //    Draggable / Droppable for the letters
@@ -28,22 +34,70 @@ class App extends Component {
     }
   }
   handleClick(i) {
-    var game = games[i];
+    this.setState({
+      gameIdx: i
+    });
+  }
+  renderButtons(i) {
+    return <button onClick={() => this.handleClick(i)}> {i} </button>
+  }
+  mainMenu() {
+    this.setState({
+      gameIdx: -1
+    });
+  }
+  render() {
+    var gameButtons = [];
+    var that = this;
+    games.forEach(function(game, gameIdx) {
+      gameButtons.push(that.renderButtons(gameIdx));
+    });
+
+    console.log(this.state.gameIdx);
+    return (
+      <div className="App">
+        <div className="Header">
+          <button onClick={() => this.mainMenu()}> MENU </button>
+        </div>
+        {this.state.gameIdx !== -1 && 
+          <Game gameIdx={this.state.gameIdx} />
+        }
+        {this.state.gameIdx === -1 &&
+          <div>
+            Please choose a game from above
+            TODO add a separate game selection menu here
+            Should probably pull game selection out of the header
+
+            <br></br>
+            
+            {gameButtons}
+          </div>
+        }
+      </div>
+    );
+  }
+}
+
+// This should probably carry all of the state logic
+class Game extends Component {
+  constructor(props) {
+    super(props);
+
+    var game = games[this.props.gameIdx];
     var board = [];
     var prevBoard = [];
     game.board.forEach(function(row) {
       board.push(row.slice());
       prevBoard.push(row.slice());
     });
-    this.setState({
-      gameIdx: i,
+    this.state = {
       curLetter: -1,
       board: board,
       prevBoard: prevBoard,
       letters: game.letters.slice(),
       prevLetters: game.letters.slice(),
       numberOfMoves: 0
-    });
+    };
   }
   handleLBClick(letterIdx) {
     this.setState((prevState) => ({
@@ -109,50 +163,16 @@ class App extends Component {
       this.resetBoard();
     }
   }
-  renderButtons(i) {
-    return <button onClick={() => this.handleClick(i)}> {i} </button>
-  }
-  renderGame() {
-    return <Game  board={this.state.board} letters={this.state.letters}
-                  curLetter={this.state.curLetter}
-                  handleGBClick={(letter, row) => this.handleGBClick(letter, row)}
-                  handleLBClick={(letterIdx) => this.handleLBClick(letterIdx)}
-                  handleUndoClick={() => this.resetBoard()}
-                  handleSubmitClick={() => this.handleSubmitClick()}/>
-  }
-  render() {
-    var gameButtons = [];
-    var that = this;
-    games.forEach(function(game, gameIdx) {
-      gameButtons.push(that.renderButtons(gameIdx));
-    });
-
-    console.log(this.state.gameIdx);
-    return (
-      <div className="App">
-        <div className="Header">
-          {gameButtons}
-        </div>
-        {this.state.gameIdx != -1 && 
-          this.renderGame()
-        }
-      </div>
-    );
-  }
-}
-
-// This should probably carry all of the state logic
-class Game extends Component {
   render() {
     return (
       <div className="Game">
-        <GameBoard  letters={this.props.board}
-                    handleGBClick={(letter, row) => this.props.handleGBClick(letter, row)}/>
-        <LetterBoard  letters={this.props.letters} 
-                      curLetter={this.props.curLetter}
-                      handleLBClick={(letterIdx) => this.props.handleLBClick(letterIdx)}
-                      handleUndoClick={() => this.props.resetBoard()}
-                      handleSubmitClick={() => this.props.handleSubmitClick()}/>
+        <GameBoard  letters={this.state.board}
+                    handleGBClick={(letter, row) => this.handleGBClick(letter, row)}/>
+        <LetterBoard  letters={this.state.letters} 
+                      curLetter={this.state.curLetter}
+                      handleLBClick={(letterIdx) => this.handleLBClick(letterIdx)}
+                      handleUndoClick={() => this.resetBoard()}
+                      handleSubmitClick={() => this.handleSubmitClick()}/>
       </div>
     );
   }
