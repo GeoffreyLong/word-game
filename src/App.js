@@ -5,6 +5,7 @@
 //        Consider Math.ceil
 //    Checking for new words after collapsing
 //        Multi-collapses are a good way to get extra points for stats
+//    Move GameButtons out of letterBoard... there is no reason for it to be there
 //
 //
 // TODO
@@ -38,6 +39,8 @@
 //            Explosion
 //            Misc Character (wildcard)
 //    Add a "how to"
+//    Consider moving reset out of the gameButtons
+//        Also add a confirmation. Don't want people to accidentally reset
 //
 // POSSIBLE NAMES
 //    Negation
@@ -123,6 +126,24 @@ class Game extends Component {
       numberOfMoves: 0
     };
   }
+  // Recycled logic from constructor...
+  resetBoard() {
+    var game = games[this.props.gameIdx];
+    var board = [];
+    var prevBoard = [];
+    game.board.forEach(function(row) {
+      board.push(row.slice());
+      prevBoard.push(row.slice());
+    });
+    this.setState(() => ({
+      curLetter: -1,
+      board: board,
+      prevBoard: prevBoard,
+      letters: game.letters.slice(),
+      prevLetters: game.letters.slice(),
+      numberOfMoves: 0
+    }));
+  }
   handleLBClick(letterIdx) {
     this.setState((prevState) => ({
       curLetter: letterIdx
@@ -150,7 +171,7 @@ class Game extends Component {
       }
     });
   }
-  resetBoard() {
+  resetMove() {
     this.setState((prevState) => {
       var newBoard = [];
       prevState.prevBoard.forEach(function(row) {
@@ -184,7 +205,7 @@ class Game extends Component {
     else {
       // Do the same as a click
       alert("Invalid");
-      this.resetBoard();
+      this.resetMove();
     }
   }
   render() {
@@ -208,12 +229,15 @@ class Game extends Component {
     return (
       <div className="Game">
         <GameBoard  letters={this.state.board}
-                    handleGBClick={(letter, row) => this.handleGBClick(letter, row)}/>
+                    handleGBClick={(letter, row) => this.handleGBClick(letter, row)}
+                    />
         <LetterBoard  letters={this.state.letters} 
                       curLetter={this.state.curLetter}
                       handleLBClick={(letterIdx) => this.handleLBClick(letterIdx)}
-                      handleUndoClick={() => this.resetBoard()}
-                      handleSubmitClick={() => this.handleSubmitClick()}/>
+                      handleUndoClick={() => this.resetMove()}
+                      handleSubmitClick={() => this.handleSubmitClick()}
+                      handleRestartClick={() => this.resetBoard()}
+                      />
       </div>
     );
   }
@@ -294,7 +318,9 @@ class LetterBoard extends Component {
           {letters}
         </div>
         <GameButtons  handleUndoClick={() => this.props.handleUndoClick()}
-                      handleSubmitClick={() => this.props.handleSubmitClick()}/>
+                      handleSubmitClick={() => this.props.handleSubmitClick()}
+                      handleRestartClick={() => this.props.handleRestartClick()}
+                      />
       </div>
     );
   }
@@ -315,6 +341,7 @@ class GameButtons extends Component {
     return (
       <div className="GameButtons">
         <button onClick={() => this.props.handleUndoClick()}> Undo </button>
+        <button onClick={() => this.props.handleRestartClick()}> Reset </button>
         <button onClick={() => this.props.handleSubmitClick()}> Submit </button>
       </div>
     );
